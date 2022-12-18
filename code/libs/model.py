@@ -498,7 +498,7 @@ class FCOS(nn.Module):
         #Convert regression outputs from distances to coordinates for giou_loss
         box_target_centers = (all_box_targets[:, :, :2] + all_box_targets[:, :, 2:])/2
         center_xs, center_ys = box_target_centers.unbind(dim=-1)
-        reg_output_strided = reg_outputs / point_strides[None, :, None]
+        reg_output_strided = reg_outputs * point_strides[None, :, None]
         reg_lefts = center_xs - reg_output_strided[:, :, 0]
         reg_tops = center_ys - reg_output_strided[:, :, 1]
         reg_rights = center_xs + reg_output_strided[:, :, 2]
