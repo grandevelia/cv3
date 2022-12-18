@@ -1,3 +1,6 @@
+cls_logits = torch.cat(cls_logits, dim=1)
+reg_outputs = torch.cat(reg_outputs, dim=1)
+ctr_logits = torch.cat(ctr_logits, dim=1)
 all_cls_labels = []
 all_box_targets = []
 all_center_dists = []

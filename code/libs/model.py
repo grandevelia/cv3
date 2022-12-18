@@ -19,9 +19,9 @@ from .transforms import GeneralizedRCNNTransform
 # loss functions
 from .losses import sigmoid_focal_loss, giou_loss
 
-# import pickle
-# with open('objs.pkl', 'rb') as f:
-#    targets, center_sampling_radius, strides, points, reg_range, cls_logits, reg_outputs, ctr_logits = pickle.load(f)
+import pickle
+with open('objs.pkl', 'rb') as f:
+   targets, center_sampling_radius, strides, points, reg_range, cls_logits, reg_outputs, ctr_logits = pickle.load(f)
         
 # import pickle
 # with open('inf.pkl', 'rb') as f:
@@ -84,8 +84,8 @@ class FCOSClassificationHead(nn.Module):
         for fpn_output in x:
             layer_logits = self.cls_logits(self.conv(fpn_output))
             bs, _, feat_h, feat_w = layer_logits.shape
-            layer_logits = layer_logits.view(bs, -1, self.num_classes, feat_h, feat_w)
-            layer_logits = layer_logits.permute(0, 3, 4, 1, 2)
+            #layer_logits = layer_logits.view(bs, -1, self.num_classes, feat_h, feat_w)
+            layer_logits = layer_logits.permute(0, 2, 3, 1)
             layer_logits = layer_logits.reshape(bs, -1, self.num_classes)
             output.append(layer_logits)
 
@@ -154,14 +154,14 @@ class FCOSRegressionHead(nn.Module):
             layer_conv = self.conv(fpn_output)
             reg_output = self.bbox_reg(layer_conv)
             bs, _, feat_h, feat_w = reg_output.shape
-            reg_output = reg_output.view(bs, -1, 4, feat_h, feat_w)
-            reg_output = reg_output.permute(0, 3, 4, 1, 2)
+            #reg_output = reg_output.view(bs, -1, 4, feat_h, feat_w)
+            reg_output = reg_output.permute(0, 2, 3, 1)
             reg_output = reg_output.reshape(bs, -1, 4) # [bs, h*w, 4]
             
             cent_score = self.bbox_ctrness(layer_conv)
             bs, _, feat_h, feat_w = cent_score.shape
-            cent_score = cent_score.view(bs, -1, 1, feat_h, feat_w) # [bs, 1, 1, h, w]
-            cent_score = cent_score.permute(0, 3, 4, 1, 2) # [bs, h, w, 1, 1]
+            #cent_score = cent_score.view(bs, -1, 1, feat_h, feat_w) # [bs, 1, 1, h, w]
+            cent_score = cent_score.permute(0, 2, 3, 1) # [bs, h, w, 1, 1]
             cent_score = cent_score.reshape(bs, -1, 1) # [bs, h * w, 1]
 
             reg_outs.append(reg_output)
@@ -414,10 +414,6 @@ class FCOS(nn.Module):
     ):
         # with open('objs.pkl', 'wb') as f:
         #     pickle.dump([targets, center_sampling_radius, strides, points, reg_range, cls_logits, reg_outputs, ctr_logits], f)
-        # print("COMPUTE LOS SAVED")
-        # print("COMPUTE LOS SAVED")
-        # print("COMPUTE LOS SAVED")
-        # print("COMPUTE LOS SAVED")
         cls_logits = torch.cat(cls_logits, dim=1)
         reg_outputs = torch.cat(reg_outputs, dim=1)
         ctr_logits = torch.cat(ctr_logits, dim=1)
@@ -502,7 +498,7 @@ class FCOS(nn.Module):
         #Convert regression outputs from distances to coordinates for giou_loss
         box_target_centers = (all_box_targets[:, :, :2] + all_box_targets[:, :, 2:])/2
         center_xs, center_ys = box_target_centers.unbind(dim=-1)
-        reg_output_strided = reg_outputs * point_strides[None, :, None]
+        reg_output_strided = reg_outputs / point_strides[None, :, None]
         reg_lefts = center_xs - reg_output_strided[:, :, 0]
         reg_tops = center_ys - reg_output_strided[:, :, 1]
         reg_rights = center_xs + reg_output_strided[:, :, 2]

@@ -34,11 +34,11 @@ def train_one_epoch(
     for iter_idx, (imgs, targets) in enumerate(train_loader, 0):
         imgs = list(img.to(device) for img in imgs)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+        # zero out optimizer
+        optimizer.zero_grad()
         # forward / backward the model
         losses = model(imgs, targets)
         losses["final_loss"].backward()
-        # zero out optimizer
-        optimizer.zero_grad()
         # step optimizer / scheduler
         optimizer.step()
         scheduler.step()

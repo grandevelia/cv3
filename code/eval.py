@@ -21,6 +21,7 @@ def main(args):
 
     """1. load config"""
     # sanity check
+    print(args.config)
     if os.path.isfile(args.config):
         cfg = load_config(args.config)
     else:
