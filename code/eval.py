@@ -21,7 +21,6 @@ def main(args):
 
     """1. load config"""
     # sanity check
-    print(args.config)
     if os.path.isfile(args.config):
         cfg = load_config(args.config)
     else:
@@ -72,8 +71,9 @@ def main(args):
     gt_json_file = os.path.join(
         cfg["dataset"]["json_folder"], cfg["dataset"]["test"] + ".json"
     )
+    print(gt_json_file)
     output_file = os.path.join(os.path.split(ckpt_file)[0], "eval_results.json")
-
+    print(output_file)
     """5. Test the model"""
     print("\nStart testing ...")
     start = time.time()

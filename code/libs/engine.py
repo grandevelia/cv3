@@ -120,11 +120,13 @@ def evaluate(val_loader, model, output_file, gt_json_file, device, print_freq=10
         # unpack the results
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         for target, output in zip(targets, outputs):
+            #print(output)
             image_id = target["image_id"].item()
             boxes = convert_to_xywh(output["boxes"]).tolist()
             scores = output["scores"].tolist()
             labels = output["labels"].tolist()
             for box, score, label in zip(boxes, scores, labels):
+                #print("here")
                 det_results.append(
                     {
                         "image_id": image_id,
@@ -148,13 +150,17 @@ def evaluate(val_loader, model, output_file, gt_json_file, device, print_freq=10
                     iter_idx, len(val_loader), batch_time=batch_time
                 )
             )
-
+        #print(len(det_results))
+    
+    #print(len(det_results))
     # save results to json file
     with open(output_file, "w") as outfile:
         json.dump(det_results, outfile)
 
     # use COCO API for evaluation
     coco_gt = COCO(gt_json_file)
+    print("actual output file")
+    print(output_file)
     coco_dt = coco_gt.loadRes(output_file)
     cocoEval = COCOeval(coco_gt, coco_dt, "bbox")
     cocoEval.evaluate()
