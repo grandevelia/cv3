@@ -3,3 +3,6 @@
 **/env/*
 **/__pycache__/*
 **/*.pkl
+**/*.png
+**/*.jpg
+**/*.jpeg
